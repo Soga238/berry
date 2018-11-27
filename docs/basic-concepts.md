@@ -4,11 +4,11 @@ layout: default
 
 # Basic Concepts
 
-Berry源文件通常是扩展名为 ".be" 的纯文本文件。
+Berry source files are usually plain text files with the extension ".be".
 
 ## Comments
 
-Berry支持单行注释和块注释。单行注释以字符 '`#`' 开头，到换行符结束；多行注释以串 '`#-`' 开头，到 '`-#`' 结束。例如：
+Berry supports line comments and block comments. Line comments begin with the character '#' and end with a newline. block comments begin with the string '-#' and end with '-#'. E.g.
 
 ```
 # this is a line comment
@@ -17,17 +17,17 @@ Berry支持单行注释和块注释。单行注释以字符 '`#`' 开头，到�
 -#
 ```
 
-像C语言一样，多行注释不支持嵌套，例如下面的情况：
+Like the C language, block comments do not support nesting, such as the following
 
 ```
 #- some comments -# ... -#
 ```
 
-解析器将在第一个 '`-#`' 处终止注释的解析。
+The parser will terminate the parsing of the block comment at the first '-#'.
 
 ## Numerical Value
 
-Berry支持的数值字面量有整数和浮点数两种：
+The numeric literals supported by Berry both integer and floating point numbers
 
 ``` ruby
 40     # integer
@@ -37,7 +37,7 @@ Berry支持的数值字面量有整数和浮点数两种：
 
 ## Identifier
 
-标识符是指那些以字母或下划线开头，然后跟随若干字母、数字或者下划线的单词。和大部分语言一样，Berry是大小写敏感的。
+Identifiers are words that begin with a letter or underscore followed by a number of letters, numbers, or underscores. Like most languages, Berry is case sensitive.
 
 ```
 a
@@ -49,7 +49,7 @@ baseClass
 
 ## Keywords
 
-Berry保留以下token用作关键字：
+Berry reserves the following tokens as keywords.
 
 ```
 if elif else while for def end
@@ -59,17 +59,16 @@ true false nil var do
 
 ## Statements
 
-语句分为表达式语句，`if`语句，`while`语句，`for`语句，函数定义语句和类定义语句几种。
+Statements are divided into expression statements, ifstatements, whilestatements, forstatements, function definition statements, and class definition statements.
 
-一条表达式语句可能是一次赋值运算或者函数调用。
+An expression statement may be an assignment operation or a function call.
 
 ```ruby
 a = 1    # assignment statement
 print(a) # call atatement
 ```
 
-除了单行注释以外，换行符（`\r`, `\n`）只是被认为是一个空白字符，所以语句可以折行书写。
-
+Expect single-line comments, the newline character ('`\r`', '`\n`') is only considered a blank character, so the statement can be written in a wrap.
 实际上多个语句置于一行也不会有什么问题，但是当出现一些情况时，原本的两个语句会被错误的解析为一条语句。
 
 ```ruby
@@ -80,14 +79,14 @@ a = c
 (b) = 1     # be regarded as a function call
 ```
 
-以下方法可以解决歧义：
+The following methods can solve the ambiguity:
 
-* 赋值号左边不要使用括号，而是只是用简单表达式。
-* 使用'`;`'符号显式地分隔语句。
+Do not use parentheses to the left of the assignment number, but simply use a simple expression.
+Use the ' ;' symbol to explicitly separate statements.
 
 ## Block
 
-块是若干语句的集合。块出现在控制语句、函数或方法体中。例如：
+A block is a collection of statements. A block appears in a control statement, function, or method body. E.g.
 
 ```ruby
 if (isOpen)
@@ -113,61 +112,63 @@ end
 
 ## Type and Values
 
-Berry支持的**类型**有：nil, integer, real, bool, string, closure, native function, class, instance, list和map几种。
+Berry supports the following **types** : nil, integer, real, bool, string, closure, native function, class, instance, list, and map.
 
-**字面量**（literal）用于表达源代码中的固定值。字面量可能为整数、浮点数、boolean、string和boolean等类型。例如数字`3`就是一个整型字面量。
+**Literal**, value that is fixed by its coding within the program using it. Literals may be integers, floats, booleans, strings and booleans. For example, a number `34` is an integer literal.
 
 ### nil
 
-nil表示该对象的值为一个空值。使用关键字`nil`就可以表示一个nil值。
+Nil indicates that the value of the object is a null value. A keyword nilcan be used to represent a nil value.
 
 ### Integer
 
-整数类型是一个有符号整形量，其具体长度依赖实现。通常在32位环境下，整型为32位的有符号数。整型字面量为一串连续的数字如`123`等。
+An integer type is a signed integer whose specific length depends on the implementation. Usually in a 32-bit environment, the integer is a 32-bit signed number. The integer literal is a series of consecutive numbers such `123` as.
 
 ### Real
 
-浮点类型的实现也根据实现来决定，通常会使用C语言的`double`类型来实现浮点，但是在某些时候为了省内存会使用`float`实现。
+The implementation of floating-point types is also determined by implementation. Usually, the C language `double` type is used to implement floating point, but in some cases the `float` implementation is used to save memory.
 
 ### Boolean
 
-Boolean取值为`true`或`false`，它通常在逻辑运算时使用。
+Boolean takes the value `true` or `false`, which is usually used in logical operations.
 
 ### String
 
-字符串类型用于表示一串字符。Berry中可以使用一对单引号或者双引号引用一段字符来表示字符串，这两种字符串没有任何区别。
+A string type is used to represent a string of characters. Berry can use a pair of single or double quotes to refer to a character to represent a string. There is no difference between the two strings.
 
 ### Closure
 
-Berry的函数通常表现为一个闭包，闭包是在运行时生成的对象。简单而言，你可以像在C语言中使用函数那样使用闭包。
+Berry's functions usually appear as a closure, and closures are objects that are generated at runtime. In simple terms, you can use closures like functions in C.
 
 ### Native Function
 
-原生函数即使用C语言实现的函数，实际上在实现上它依然是一种闭包。对于Berry代码和用户而言，Berry Closure和Native Function并无区别。
+The native function is a function implemented in C language, and it is actually a closure in its implementation. For Berry code and users, Berry Closure is no different from Native Function.
 
 ### Class and Instance
-Berry通过class提供一些面向对象功能。Class可以由C-API创建或使用Berry脚本定义。Berry的class由若干方法和成员变量组成
+
+Berry provides some object-oriented functionality through classes. Class can be created by C-API or defined using a Berry script. Berry's class consists of several methods and member variables.
 
 #### Define a class
 
-Class使用关键字`class`定义：
+Uses keyword `class` definitions class.
 
 ``` ruby
 class TestClass
 end
 ```
 
-Class会存储在定义所在的作用域的变量表中，就像其他的类型一样。
+Class is stored in the variable table of the scope in which it is defined, just like any other type.
 
 #### Methods and Members
 
-Class中的方法和一般的函数定义相似，在class block中使用关键字`def`来定义，而成员变量需要使用`var`关键字定义：
+The methods in Class are similar to the general function `def` initions, which defare defined using keywords in the class block , and the member variables need to be defined using `var` keywords
+
 <div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">TestClass</span>
-    <span class="k">var</span> <span class="n">a</span> <span class="c1"># 定义成员变量</span>
+    <span class="k">var</span> <span class="n">a</span> <span class="c1"># define member variable</span>
     <span class="k">def</span> <span class="nf">init</span><span class="p">()</span> <span class="c1"># 定义init方法</span>
         <span class="nb">self</span><span class="p">.</span><span class="nf">a</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">end</span>
-    <span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="c1"># 定义method方法</span>
+    <span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="c1"># define method</span>
         <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="mi">2</span>
     <span class="k">end</span>
 <span class="k">end</span>
@@ -175,42 +176,41 @@ Class中的方法和一般的函数定义相似，在class block中使用关键�
 
 #### Constructor and Instantiation
 
-Berry通过调用类的名字来得到一个实例：
+Berry gets an instance by calling the name of the class.
 
 ``` ruby
 class TestClass
     ...
 end
-obj = TestClass() # 实例化一个类
+obj = TestClass() # instantiation a class
 ```
 
-实例化使用的参数数量取决于类的显式构造函数参数数量。Class的显式构造函数为`init`方法，你可以在class中定义该方法来自定义类的初始化行为。实例化时解释器会根据class的信息来生成一个instance对象。Berry虽然允许`init`方法具有返回值但不会在实例化时使用。
+The number of parameters used for instantiation depends on the number of explicit constructor arguments of the class. The explicit constructor of Class is a `init` method, you can define the initialization behavior of the class in the class. When instantiated, the interpreter will generate an instance object based on the class information. Berry allows initmethods to have a return value but will not be used when instantiating.
 
 ### List
 
-List是一种可变长度的数组，List的构造方法有以下几种:
+List is a variable-length array. The construction methods of List are as follows
 
 ``` ruby
-l1 = []           # 构造一个空list
-l2 = list()       # 构造一个空list
-l3 = [0, 1, 2, 3] # 构造并初始化list
+l1 = []           # structure a empty list with '[]'
+l2 = list()       # structure a empty list with list class
+l3 = [0, 1, 2, 3] # structure and initialize list
 ```
+Using empty square brackets for "`[]`" to construct an listempty list is exactly the same as constructing an empty list with a class. The former is just a syntactic sugar for the latter.
 
-使用空方括号对 "`[]`" 来构造一个空list和使用`list`类构造空list完全一样，前者不过是后者的一个语法糖。
-
-在list末尾追加一个对象可使用`append()`方法来实现：
+Appending an object to the end of the list can be done using `append()` method
 
 ``` ruby
 l.append(value)
 ```
 
-读取或者写入list存储的某个对象的方法：
+The method of reading or writing to an object stored in the list
 
 ``` ruby
-value = l[index]        # 通过下标运算读取
-value = l.item(index)   # 通过item()方法读取
-l[index] = value        # 通过下标运算写入
-l.setitem(index, value) # 通过setitem()方法写入
+value = l[index]        # read by index operation
+value = l.item(index)   # read by item() method
+l[index] = value        # write by index operation
+l.setitem(index, value) # write by setitem() method
 ```
 
 ### Map
