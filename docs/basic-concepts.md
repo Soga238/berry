@@ -4,11 +4,13 @@ layout: default
 
 # Basic Concepts
 
+## Syntax
+
 Berry source files are usually plain text files with the extension ".be".
 
-## Comments
+### Comments
 
-Berry supports line comments and block comments. Line comments begin with the character '#' and end with a newline. block comments begin with the string '-#' and end with '-#'. E.g.
+Berry supports line comments and block comments. Line comments begin with the character '`#`' and end with a newline. block comments begin with the string '`-#`' and end with '`-#`'. E.g.
 
 ```
 # this is a line comment
@@ -25,19 +27,40 @@ Like the C language, block comments do not support nesting, such as the followin
 
 The parser will terminate the parsing of the block comment at the first '-#'.
 
-## Numerical Value
+### Literal
 
-The numeric literals supported by Berry both integer and floating point numbers
+**Literal**, value that is fixed by its coding within the program using it. Literals may be integers, floats, booleans, strings and nil. For example, a number `34` is an integer literal.
+
+#### Numerical Literal
+
+The numeric literals supported by Berry both **integer** and **real** (floating point number).
 
 ``` ruby
 40     # integer
+0x80   # hexadecimal literal
 3.14   # real
 1.1e-6 # real
 ```
+#### Boolean
 
-## Identifier
+Use keywords `true` or `false` to represent Boolean literals.
 
-Identifiers are words that begin with a letter or underscore followed by a number of letters, numbers, or underscores. Like most languages, Berry is case sensitive.
+#### String
+
+String literals are a paragraph of text enclosed in a pair of `"` or `'`.
+
+``` ruby
+'this is a string'
+"this is a string"
+```
+
+#### Nil
+
+A keyword `nil` can be used to represent a nil literals.
+
+### Identifier
+
+Identifiers are words that begin with a letter or underline followed by a number of letters, numbers or underline. Like most languages, Berry is case sensitive.
 
 ```
 a
@@ -47,7 +70,7 @@ _init
 baseClass
 ```
 
-## Keywords
+### Keywords
 
 Berry reserves the following tokens as keywords.
 
@@ -57,23 +80,51 @@ class break continue return
 true false nil var do
 ```
 
-## Statements
+### Operator
 
-Statements are divided into expression statements, ifstatements, whilestatements, forstatements, function definition statements, and class definition statements.
+| PREC |          OPERATOR           | DESCRIPTION              | ASSOCIATES |
+| :--: | :-------------------------: | ------------------------ | ---------- |
+|  1   |            `()`             | Group                    | -          |
+|  2   |        `()` `[]` `.`        | Call, Index, Field       | Left       |
+|  3   |           `-` `!`           | Negate, Not              | Left       |
+|  4   |         `*` `/` `%`         | Multiply, Divide, Modulo | Left       |
+|  5   |           `+` `-`           | Add, Subtract            | Left       |
+|  6   |            `..`             | Range                    | Left       |
+|  7   | `<` `<=` `==` `!=` `>` `>=` | Relational Operator      | Left       |
+|  8   |            `&&`             | Logical and              | Left       |
+|  9   |            `||`             | Logical or               | Left       |
+|  10  |             `=`             | Assignment               | Right      |
+
+### Expression
+
+An **expression** is a combination of one or more operands and operators that evaluates to produce a result. The operand can be a literal, variable, function-call or subexpression.
+
+Similar to the four arithmetic operations, the precedence of operators affects the order in which expressions are evaluated.
+
+This is an example of some expressions:
+
+``` ruby
+a = 1 + 5       # 6
+print(a * 2)    # 12
+b = type(a)     # 'int'
+```
+
+### Statements
+
+Statements are divided into expression statements, `if` statements, `while` statements, `for` statements, function definition statements and class definition statements.
 
 An expression statement may be an assignment operation or a function call.
 
-```ruby
+``` ruby
 a = 1    # assignment statement
 print(a) # call atatement
 ```
 
-Expect single-line comments, the newline character ('`\r`', '`\n`') is only considered a blank character, so the statement can be written in a wrap.
-实际上多个语句置于一行也不会有什么问题，但是当出现一些情况时，原本的两个语句会被错误的解析为一条语句。
+Except line comments, the newline character ('`\r`', '`\n`') is only considered a blank character, so the statement can be written in a wrap. Berry allows multiple statements to be written on the same line. Sometimes, however, code that should have been two statements misinterprets into one statement.
 
-```ruby
+``` ruby
 a = 1 +
-	func()  # wrap line
+    func()  # wrap line
 b = 1 c = 2 # multiple statements in the same line
 a = c
 (b) = 1     # be regarded as a function call
@@ -81,137 +132,36 @@ a = c
 
 The following methods can solve the ambiguity:
 
-Do not use parentheses to the left of the assignment number, but simply use a simple expression.
-Use the ' ;' symbol to explicitly separate statements.
+* Do not use parentheses to the left of the assignment number, but simply use a simple 
+expression.
 
-## Block
+* Use the '`;`' symbol to explicitly separate statements.
+
+### Block
 
 A block is a collection of statements. A block appears in a control statement, function, or method body. E.g.
 
-```ruby
+``` ruby
 if (isOpen)
     close()
 end
 ```
 
-## Operator
-
-| PREC |          OPERATOR           | DESCRIPTION              | ASSOCIATES |
-| :--: | :-------------------------: | ------------------------ | ---------- |
-|  1   |            `()`             | Brackets                 | -          |
-|  2   |        `()` `[]` `.`        | Call, Index, Field       | Left       |
-|  3   |           `-` `!`           | Negate, Not              | Left      |
-|  4   |         `*` `/` `%`         | Multiply, Divide, Modulo | Left       |
-|  5   |           `+` `-`           | Add, Subtract            | Left       |
-|  6   | `<` `<=` `==` `!=` `>` `>=` | Relational Operator      | Left       |
-|  7   |            `&&`             | Logical and              | Left       |
-|  8   |           `\|\|`            | Logical or               | Left       |
-|  9   |             `=`             | Assignment               | Right      |
-
-# Syntax
-
 ## Type and Values
 
-Berry supports the following **types** : nil, integer, real, bool, string, closure, native function, class, instance, list, and map.
+Data **type** is an attribute of data which tells Berry how to use the data. Data type defines the operations that can be done on the data and the meaning of the data. A type of value from which an expression may take its value.
 
-**Literal**, value that is fixed by its coding within the program using it. Literals may be integers, floats, booleans, strings and booleans. For example, a number `34` is an integer literal.
+### Built in type
 
-### nil
+The basic types supported by berry are:
 
-Nil indicates that the value of the object is a null value. A keyword nilcan be used to represent a nil value.
-
-### Integer
-
-An integer type is a signed integer whose specific length depends on the implementation. Usually in a 32-bit environment, the integer is a 32-bit signed number. The integer literal is a series of consecutive numbers such `123` as.
-
-### Real
-
-The implementation of floating-point types is also determined by implementation. Usually, the C language `double` type is used to implement floating point, but in some cases the `float` implementation is used to save memory.
-
-### Boolean
-
-Boolean takes the value `true` or `false`, which is usually used in logical operations.
-
-### String
-
-A string type is used to represent a string of characters. Berry can use a pair of single or double quotes to refer to a character to represent a string. There is no difference between the two strings.
-
-### Closure
-
-Berry's functions usually appear as a closure, and closures are objects that are generated at runtime. In simple terms, you can use closures like functions in C.
-
-### Native Function
-
-The native function is a function implemented in C language, and it is actually a closure in its implementation. For Berry code and users, Berry Closure is no different from Native Function.
-
-### Class and Instance
-
-Berry provides some object-oriented functionality through classes. Class can be created by C-API or defined using a Berry script. Berry's class consists of several methods and member variables.
-
-#### Define a class
-
-Uses keyword `class` definitions class.
-
-``` ruby
-class TestClass
-end
-```
-
-Class is stored in the variable table of the scope in which it is defined, just like any other type.
-
-#### Methods and Members
-
-The methods in Class are similar to the general function `def` initions, which defare defined using keywords in the class block , and the member variables need to be defined using `var` keywords
-
-<div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">TestClass</span>
-    <span class="k">var</span> <span class="n">a</span> <span class="c1"># define member variable</span>
-    <span class="k">def</span> <span class="nf">init</span><span class="p">()</span> <span class="c1"># 定义init方法</span>
-        <span class="nb">self</span><span class="p">.</span><span class="nf">a</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">end</span>
-    <span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="c1"># define method</span>
-        <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="mi">2</span>
-    <span class="k">end</span>
-<span class="k">end</span>
-</code></pre></div>
-
-#### Constructor and Instantiation
-
-Berry gets an instance by calling the name of the class.
-
-``` ruby
-class TestClass
-    ...
-end
-obj = TestClass() # instantiation a class
-```
-
-The number of parameters used for instantiation depends on the number of explicit constructor arguments of the class. The explicit constructor of Class is a `init` method, you can define the initialization behavior of the class in the class. When instantiated, the interpreter will generate an instance object based on the class information. Berry allows initmethods to have a return value but will not be used when instantiating.
-
-### List
-
-List is a variable-length array. The construction methods of List are as follows
-
-``` ruby
-l1 = []           # structure a empty list with '[]'
-l2 = list()       # structure a empty list with list class
-l3 = [0, 1, 2, 3] # structure and initialize list
-```
-Using empty square brackets for "`[]`" to construct an listempty list is exactly the same as constructing an empty list with a class. The former is just a syntactic sugar for the latter.
-
-Appending an object to the end of the list can be done using `append()` method
-
-``` ruby
-l.append(value)
-```
-
-The method of reading or writing to an object stored in the list
-
-``` ruby
-value = l[index]        # read by index operation
-value = l.item(index)   # read by item() method
-l[index] = value        # write by index operation
-l.setitem(index, value) # write by setitem() method
-```
-
-### Map
-
+* **Nil**. Nil indicates that the value of the object is a null value.
+* **Integer**. Signed integer. It's length depends on the implementation. Usually in a 32bit platform, the integer is a 32bit signed number.
+* **Real**. The implementation of floating-point types is also determined by implementation. Usually, the C language `double` type is used to implement floating point, but in some cases the `float` implementation is used to save memory.
+* **Boolean**. Can be `true` or `false`, which is usually used in logical operations.
+* **String**. Store a string of characters.
+* **Function**. A named piece of code, used to implement some functions. The type *function* contains these subtypes: Berry-Closure, Native-Function and Native Closure.
+* **Class**. Encapsulation of methods and membership sets. Used to support Object-Oriented Programming.
+* **Instance**. Specific objects generated by class instantiation.
+* **List**. Variable array. Any type can be stored.
+* **Map**. Storage key value pairs. Values can make any type.

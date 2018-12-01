@@ -95,4 +95,8 @@ print(c())      # 1
 print(c())      # 2
 ```
 
-## Native Functions and Native Closures
+## Native Functions
+
+The native function is a function implemented in C language, and it is actually a closure in its implementation. For Berry code and users, Berry Closure is no different from Native Function.
+
+## Native Closures
