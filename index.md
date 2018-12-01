@@ -4,7 +4,7 @@ layout: default
 
 # About
 
-Berry是一款为嵌入式系统设计的小型脚本语言，适合在单片机上运行。Berry在Linux 64bit下Berry的编译体积不到100KB。
+Berry is a small dynamically typed embedded scripting language that is suitable for running on a microcontroller. Berry's compilation size is less than 100KB under Linux 64bit (using -O2 optimization option in the GCC 8.2.0).
 
 # Documents
 

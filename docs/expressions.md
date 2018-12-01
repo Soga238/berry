@@ -4,64 +4,94 @@ layout: default
 
 # Expressions
 
-## 基础
+## Basis
 
-Berry定义了一些一元运算符和一些二元运算符。例如逻辑与`&&`是一个二元运算符而逻辑非`!`是一个医院运算符。有些运算符既可以作为一元运算符也可以作为二元运算符，例如`-`运算符在表达式`1 - 2`中表示减法运算，而在表达式`-1`中表示取负数运算符。
+Berry provides some unary operators and binary operators. For example, the logical AND operator `&&` is a binary operator and the logical NOT operator `!` is a unary operator. Some operators can be used as either a unary operator or a binary operator. For example, the `-` operator represents a subtraction in the expression `1-2`, and the negative operator is represented in the expression `-1`.
 
-运算时要注意操作数是否支持当前的运算，例如运算`"10"+10`是非法的，因为Berry不允许将一个字符串和一个整数相加，通常Berry不会暗地里进行类型转换，但是当你试图对一个整数和一个浮点数执行加法运算时，Berry会将整数自动转换成浮点数参与运算，例如执行`1.1+1`将得到结果`2.1`。
+It is important to note whether the type of the operand supports the current operation. For example, the operation `"10"+10` is illegal because Berry does not allow a string to be added to an integer. Usually Berry does not perform implicit type conversion. , but when an integer is added to a floating point number, Berry will automatically convert the integer operand to a floating point number. For example, executing `1.1+1` will result in a result of `2.1`.
 
-在表达式中，运算符的优先级和结合性决定计算的顺序。运算符的优先级和结合律已经在[Basic Concepts](./basic-concepts.html)一章中给出。
+In expressions, the precedence and associativity of operators determine the order of calculations. The precedence and associativity of operators are given in the [Basic Concepts](./basic-concepts.html) chapter.
 
-优先级规定了不同运算符之间的计算顺序，优先级高的表达式将会先求值，例如对表达式`1+2*3`求值时将会先计算`2*3`的结果，然后再计算加法表达式。
+The precedence specifies the order of calculation between different operators. The expression with higher precedence will be evaluated first. For example, when evaluating the expression `1+2*3`, the result of `2*3` will be calculated first. And then calculate the addition expression.
 
-结合律规定了运算符两边的操作数的计算次序，例如加法运算`expr1 + expr2`中会先计算`expr1`的值再计算`expr2`的值，因此加法运算符左结合的。
+The associativity specifies the order of calculation of the operands on both sides of the operator. For example, the addition expression `expr1 + expr2` will first calculate the value of `expr1` and then the value of `expr2`, so the addition operator is left-associative.
 
-### 算术运算符
+### Arithmetic Operator
 
-| OPERATOR | FUNCTION |   EXAMPLES    |
-| :------: | :------: | :-----------: |
-|   `+`    | 一元正号 |   `+ expr`    |
-|   `-`    | 一元负号 |   `- expr`    |
-|   `+`    |   加法   | `expr + expr` |
-|   `-`    |   减法   | `expr - expr` |
-|   `*`    |   乘法   | `expr * expr` |
-|   `/`    |   除法   | `expr / expr` |
-|   `%`    |   求余   | `expr % expr` |
+| OPERATOR |    FUNCTION    |   EXAMPLES    |
+| :------: | :------------: | :-----------: |
+|   `+`    | Unary positive |   `+ expr`    |
+|   `-`    | Unary negative |   `- expr`    |
+|   `+`    |      Add       | `expr + expr` |
+|   `-`    |    Subtract    | `expr - expr` |
+|   `*`    |    Multiply    | `expr * expr` |
+|   `/`    |     Divide     | `expr / expr` |
+|   `%`    |     Modulo     | `expr % expr` |
 
-对于加法运算，当操作数为两个字符串时，将执行字符串的连接操作。而求余运算只适用于整数类型，当然，你也可以在类中重载这一运算符。
+#### Description
 
-#### 类型提升
+For the add operator `+`, when the operand is two strings, the string concatenation is performed. All arithmetic operators except the `%` can support integer and real operands, and the operator `%` only supports integer types.
 
-当算术运算（求余除外）的操作数为一个整数和一个浮点数时，整数对象对被提升为浮点数进行计算。除此之外，Berry不会进行其他的隐式类型转换。
+All arithmetic operators can be overloaded in classes.
 
-### 关系运算符
+The positive operator `+` doesn't actually generate any code, it's completely useless. It's not recommended to use.
 
-| OPERATOR | FUNCTION |    EXAMPLES    |
-| :------: | :------: | :------------: |
-|   `<`    |   小于   | `expr < expr`  |
-|   `<=`   | 小于等于 | `expr <= expr` |
-|   `==`   |   等于   | `expr == expr` |
-|   `!=`   |  不等于  | `expr != expr` |
-|   `>=`   | 大于等于 | `expr >= expr` |
-|   `>`    |   大于   | `expr > expr`  |
+#### Type Promotions
 
-### 逻辑运算符
+When the operand of an arithmetic operation (except for the `%`) is an integer and a real, the integer operand is converted to a real. In addition, Berry does not perform other implicit type conversions.
 
-| OPERATOR | FUNCTION |    EXAMPLES    |
-| :------: | :------: | :------------: |
-|   `&&`   |  逻辑与  | `expr && expr` |
-|   `||`   |  逻辑或  | `expr || expr` |
-|   `!`    |  逻辑非  |    `! expr`    |
+### Relational Operators
 
-### 赋值运算符
+| OPERATOR |      FUNCTION      |    EXAMPLES    |
+| :------: | :----------------: | :------------: |
+|   `<`    |     Less than      | `expr < expr`  |
+|   `<=`   | Less than or equal | `expr <= expr` |
+|   `==`   |       Equal        | `expr == expr` |
+|   `!=`   |     Not equal      | `expr != expr` |
+|   `>=`   |  Greater or equal  | `expr >= expr` |
+|   `>`    |    Greater than    | `expr > expr`  |
 
-赋值运算符只出现在赋值表达式中，赋值运算符的左操作数必须是一个可以修改的对象，而赋值表达式不会返回值。你不可以像C语言那样在一个表达式中间使用赋值运算符，相反，一个表达式中只能有一次赋值运算。
+#### Description
 
+Relational expressions are evaluated by comparing the size relationship of the operands. When the relationship is satisfied, the value of the expression is `true`, otherwise it is `false`. 
 
+Relational operators allow the use of a combination of the following operands (the left and right order can be reversed):
 
-### 成员运算符和下标运算符
+* **integer** *relop* **integer**
+* **integer** *relop* **real**
+* **string** *relop* **string**
 
-成员运算符`.`用于访问类对象的成员字段。例如
+All relational operators can be overloaded in classes.
+
+### Logical Operators
+
+| OPERATOR |  FUNCTION   |    EXAMPLES    |
+| :------: | :---------: | :------------: |
+|   `&&`   | Logical AND | `expr && expr` |
+|   `||`   | Logical OR  | `expr || expr` |
+|   `!`    | Logical NOT |    `!expr`     |
+
+#### Description
+
+For logical AND operators, the result of a logical expression is `true` when both operand values are `true`, otherwise it's `false`.
+
+For logical OR operators, the result of a logical expression is `false` when both operand values are `false`, otherwise it's `true`.
+
+Logical operators require that the operands be a boolean type, otherwise the following conversion rules will be tried:
+
+* Nil: Convert to `false`.
+* Integer: Convert to `false` when the value is `0`, otherwise it's `true`.
+* Real: Convert to `false` when the value is `0.0`, otherwise it's `true`.
+* Instance: If the method `tobool()` is supplied, the return value of the method will be used, otherwise it's `true`.
+* Other: Convert to `true`.
+
+### Assignment operator
+
+The assignment operator `=` only appears in an assignment expression, and its left operand must be a writable object. Assignment expressions do not return a value. You can't use an assignment operator in the middle of an expression like C, so you can only have at most one assignment in an expression.
+
+### Field Operator and Index Operator
+
+The field operator `.` is used to access the member field of the class object. E.g:
 
 ``` ruby
 l = list()
@@ -69,10 +99,10 @@ l.append("item 0")
 s = l.item(0)
 ```
 
-下标运算符`[]`用于访问对象的某个元素，例如
+The index operator `[]` is used to access an element of an object, for example
 
 ``` ruby
 n = l[2]
 ```
 
-会返回对象`l`中下标`2`所对应的元素。
+This statement will return the element corresponding to index `2` in object `l`.
