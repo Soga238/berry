@@ -4,13 +4,23 @@ layout: default
 
 # Functions and Closures
 
-Berry中的函数是一个命名了的代码块，我们通过调用函数来执行函数中的代码。函数可以接受0到多个参数并总是返回一个结果。另外，Berry不允许函数调用出现在定义之前。
+The Berry function is a named code block that executes the code through a function call. A function can accept 0 to more arguments and always return a result. In addition, Berry does not allow functions to be called before they are defined.
 
 ## Functions
 
 ### Functions definition
 
-例如我们要编写一个函数来计算阶乘，n的阶乘为从1到n所有数字的乘积，这样我们可以编写下面的函数：
+The function is defined using the keyword `def`, which is defined as
+
+``` ruby
+def function_name(arguments)
+    block
+end
+```
+
+*function_name* is the name of this function. *arguments* is a list of formal parameters for this function. Functions can be used without parameters or multiple parameters. *block* is a code block that implements this function. The function can be an empty function, ie there is no statement in *block*.
+
+For example, we have to write a function to calculate the factorial, and the factorial of n means the product of all numbers from 1 to n, so we can write the following function:
 
 ``` ruby
 def fact(a)
@@ -23,37 +33,42 @@ def fact(a)
 end
 ```
 
-使用关键字`def`来定义函数，上面代码中的`fact`就是函数的名字。函数名实际上表示存储函数的变量。因此，如果作用域中有同名的变量，定义函数会覆盖原先变量的值，同理对存储函数的变量赋值也会造成相反的结果。
+The `fact` here is the name of the function. The function name is actually the variable name of the stored function.
+Therefore, if there is a variable with the same name in the scope, the definition function will overwrite the old value of the variable. Similarly, assigning a value to the variable of the stored function will also have the opposite result.
 
 ### Functions call
 
-当函数定义之后就可以调用了，函数调用时需要为函数提供必要的参数，而函数返回值也可以在表达式中使用。例如我们使用`fact()`函数来求5的阶乘并打印：
+When the function is defined, it can be called. The function call needs to provide the necessary parameters for the function, and the function return value can also be used in the expression. For example, we use the `fact()` function to find the factorial of 5 and print it
 
 ``` ruby
 v = fact(5) # assign 5! to v
 print(v)    # 120
 ```
 
-函数调用需要为函数提供正确的参数，无论是参数的数量还是参数类型。被调用函数的参数初始化完成后解释器将开始执行被调函数的代码。
+Function calls need to provide the correct parameters for the function, both in number and type. After the parameters of the called function are initialized, the interpreter will start executing the code of the called function.
 
-函数执行到一条`return`语句时会将返回值复制到合适的位置，之后解释器会返回主调函数并继续执行，函数调用完成。
+When the function executes a `return` statement, it will copy the return value to the appropriate location. After that, the interpreter will return the calling function and continue execution, and the function call is completed.
 
 ### Return statement
 
-`return`语句用于终止正在执行的函数并将一个值返回给主调函数。`return`语句有两种写法：
+The `return` statement is used to terminate the function being executed and return a value to the calling function. The `return` statement has two ways of writing
 
 ``` ruby
 return
 return expression
 ```
 
-注意，第一种写法中函数还是会返回一个`nil`值到主调函数中，效果与使用`return nil`相同（尽管生成的中间代码并不相同）。
+Note that in the first way, the function will still return a `nil` value, the effect is the same as using `return nil` (although the generated intermediate code is somewhat different).
 
-如果函数的最后一条代码不是`return`语句，解释器将会在此处隐式地添加一个返回`nil`的`return`语句。这样做是为了保证函数一定能返回。
+If the last code of the function is not a `return` statement, the interpreter will add an implicit `return` statement that returns `nil` here. This is done to ensure that the function will return.
 
 ## Closures
 
-闭包指能够读取其他函数内部变量的函数。Berry允许将一个函数定义在另一个函数内，因此也支持闭包。闭包的一个简单例子如下：
+A closure is a function that can access local variables of outer functions. The local variables of the outer functions used by the closure is called the free variables of the closure.
+
+Berry allows a function to be defined in another function, so it also supports closures. Strictly, all Berry functions are implemented as a closure, but closures without free variables are usually called functions.
+
+A closures (including a function) an instance constructed by the prototype at runtime. This section mainly describes the closure features with free variables. A simple example of a closure is
 
 ``` ruby
 def func(a)
@@ -64,16 +79,16 @@ def func(a)
 end
 ```
 
-这个例子中的`func`函数中定义了一个函数`clos`。`clos`的返回值是函数`func`的局部变量`a`，因此函数`clos`是一个闭包。最后`func`返回了函数`clos`，故可以通过调用`func`的返回值来间接地调用`clos`：
+A function `clos` is defined in the function `func`. The return value of `clos` is the local variable `a` of the function `func`, so the function `clos` is a closure. Finally the `func` returns the function `clos`, so you can call the `clos` indirectly by calling the return value of the `func`:
 
 ``` ruby
 f = func(5)
 v = f()     # 5
 ```
 
-变量`v`的值最终等于`5`，这说明闭包`clos`正确地返回了`func`的局部变量`a`。为了保证闭包能够访问外层函数的局部变量，解释器需要在外层函数返回之前把闭包会访问的变量用单独的环境保存。这个环境仅对该外层函数中的闭包可见，就像该函数的局部变量一样。
+The value of the variable `v` is finally `5`, which means that the closure `clos` correctly returns the local variable `a` of the `func`. In order to ensure that the closure can access the free variables, the interpreter needs to save the variables that the closure will access in a separate environment before the outer function returns. This environment is only visible to closures in the outer function, just like the local variables of the outer function.
 
-利用闭包可以实现一个计数器：
+A counter can be implemented with a closure:
 
 ``` ruby
 def counter()
@@ -86,7 +101,7 @@ def counter()
 end
 ```
 
-函数`counter`返回一个用于计数的闭包。每次调用这个闭包后得到的的返回值都会比上一次调用的返回值大1（第一次调用的返回值为0）：
+The function `counter` returns a closure for counting. The return value of each call to this closure will be one greater than the return value of the previous call (the return value of the first call is 0):
 
 ``` ruby
 c = counter()
@@ -97,6 +112,14 @@ print(c())      # 2
 
 ## Native Functions
 
-The native function is a function implemented in C language, and it is actually a closure in its implementation. For Berry code and users, Berry Closure is no different from Native Function.
+A native function is a function implemented in C, which can be used like a Berry function. Native functions are different from closures, they have no free variables. Native functions are used to extend the functionality of the Berry VM (virtual machine). For example, the native function `print` implements the printing function for berry, and the IO operation cannot be directly implemented by Berry code.
+
+The implementation of native functions requires the use of Berry's C-API. Please refer to the chapter [API Reference](./api-reference.html) for details.
 
 ## Native Closures
+
+Native closures are different from native functions in that they support free variables. However, native closures must be constructed by a native function or a native closure at the time of the call, and the free variables of the native closure must be initialized by them. This means that the Berry code cannot be used to initialize the free variables of the native closure.
+
+Native closures are also used to extend Berry. For Berry code, it is very similar to native functions because you can't initialize free variables for native closures in Berry code.
+
+The implementation of native closures requires the use of Berry's C-API too. Please refer to the chapter [API Reference](./api-reference.html) for details.

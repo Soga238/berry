@@ -4,12 +4,13 @@ layout: default
 
 # Jump Statements
 
-Berry提供了`break`和`continue`两种跳转语句。
+Berry provides two jump statements, the `break` statement and the `continue` statement.
 
 ## break statement
 
-使用break语句可以跳出最近一层的while或者for语句。break语句只能出现在`while` ... ` end`或者`for` ... `end`内部。
+使用break语句可以跳出最近一层的while或者for语句。break语句只能在循环中使用并且不能跨越函数。
+Use the `break` statement to leave the nearest `while` or `for` statement. A `break` statement can only be used in a loop and cannot span functions.
 
-## continue语句
+## continue statement
 
-使用break语句可以终止最近一层的while或者for语句的一轮循环并立即开始下一轮。continue语句只能出现在`while` ... `end`或者`for` ... `end`内部。
+The `continue` statement can terminate an iteration of the nearest `while` or `for` statement and immediately start the next iteration. A `continue` statement can only be used in a loop and cannot span functions.
