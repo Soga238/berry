@@ -18,7 +18,7 @@ def function_name(arguments)
 end
 ```
 
-*function_name* is the name of this function. *arguments* is a list of formal parameters for this function. Functions can be used without parameters or multiple parameters. *block* is a code block that implements this function. The function can be an empty function, ie there is no statement in *block*.
+The *function_name* is the name of this function. The *arguments* is a list of formal parameters for this function. Functions can be used without parameters or multiple parameters. The *block* is a code block that implements this function. The function can be an empty function, ie there is no statement in *block*.
 
 For example, we have to write a function to calculate the factorial, and the factorial of n means the product of all numbers from 1 to n, so we can write the following function:
 

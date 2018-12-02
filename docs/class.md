@@ -4,11 +4,11 @@ layout: default
 
 # Class
 
-### Class and Instance
+## Class and Instance
 
-Berry provides some object-oriented functionality through classes. Class can be created by C-API or defined using a Berry script. Berry's class consists of several methods and member variables.
+Berry provides some object-oriented functionality through classes. Class can be created by C-API or defined using a Berry code. Berry's class consists of some methods and member variables.
 
-#### Define a class
+## Define a class
 
 Uses keyword `class` definitions class.
 
@@ -17,15 +17,15 @@ class TestClass
 end
 ```
 
-Class is stored in the variable table of the scope in which it is defined, just like any other type.
+Class is one of the basic types, so a class is also the value stored in a variable.
 
-#### Methods and Members
+## Methods and Members
 
-The methods in Class are similar to the general function `def` initions, which defare defined using keywords in the class block , and the member variables need to be defined using `var` keywords
+The methods in the class are similar to the function defined with the keyword `def`, and the member variable is defined using the `var` keyword
 
 <div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">TestClass</span>
     <span class="k">var</span> <span class="n">a</span> <span class="c1"># define member variable</span>
-    <span class="k">def</span> <span class="nf">init</span><span class="p">()</span> <span class="c1"># 定义init方法</span>
+    <span class="k">def</span> <span class="nf">init</span><span class="p">()</span> <span class="c1"># define method init</span>
         <span class="nb">self</span><span class="p">.</span><span class="nf">a</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">end</span>
     <span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="c1"># define method</span>
@@ -34,9 +34,9 @@ The methods in Class are similar to the general function `def` initions, which d
 <span class="k">end</span>
 </code></pre></div>
 
-#### Constructor and Instantiation
+## Constructor and Instantiation
 
-Berry gets an instance by calling the name of the class.
+Berry constructs an instance of the class by calling the class name. Like this
 
 ``` ruby
 class TestClass
@@ -45,4 +45,27 @@ end
 obj = TestClass() # instantiation a class
 ```
 
-The number of parameters used for instantiation depends on the number of explicit constructor arguments of the class. The explicit constructor of Class is a `init` method, you can define the initialization behavior of the class in the class. When instantiated, the interpreter will generate an instance object based on the class information. Berry allows initmethods to have a return value but will not be used when instantiating.
+The number of parameters used for instantiation depends on the number of explicit constructor arguments of the class. The explicit constructor of class is the method `init`, where you can define the initialization behavior of the class. When instantiated, the interpreter will constructs an instance object based on the class information. The method `init` has a return value but will not be used when instantiating.
+
+This code demonstrates the explicit constructor of the class and instantiates this class.
+
+``` ruby
+1 class Test
+2     def init(a)
+3         print("structure test", a)
+4     end
+5 end
+6 obj = Test('hello')
+7 print(type(obj), classname(obj))
+```
+
+The result of this example is
+
+```
+structure test hello
+instance Test
+```
+
+This class is instantiated at sixth line of code and the result is printed with `"structure test hello"`, which means that the method `init` was called during the construction of the class. The 7th line prints the type and class name of the variable `obj`. The results are `instance` and `Test` respectively, which means that the variable `obj` is an instance of the class `Test`.
+
+## Method and Operators Overloading
