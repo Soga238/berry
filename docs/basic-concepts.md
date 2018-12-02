@@ -111,7 +111,7 @@ b = type(a)     # 'int'
 
 ### Statements
 
-Statements are divided into expression statements, `if` statements, `while` statements, `for` statements, function definition statements and class definition statements.
+Statements are divided into expression statements, `if` statements, `while` statements, `for` statements, function definition statements, and class definition statements.
 
 An expression statement may be an assignment operation or a function call.
 

@@ -8,7 +8,7 @@ layout: default
 
 Berry provides some unary operators and binary operators. For example, the logical AND operator `&&` is a binary operator and the logical NOT operator `!` is a unary operator. Some operators can be used as either a unary operator or a binary operator. For example, the `-` operator represents a subtraction in the expression `1-2`, and the negative operator is represented in the expression `-1`.
 
-It is important to note whether the type of the operand supports the current operation. For example, the operation `"10"+10` is illegal because Berry does not allow a string to be added to an integer. Usually Berry does not perform implicit type conversion. , but when an integer is added to a floating point number, Berry will automatically convert the integer operand to a floating point number. For example, executing `1.1+1` will result in a result of `2.1`.
+It is important to note whether the type of the operand supports the current operation. For example, the operation `"10"+10` is illegal because Berry does not allow a string to be added to an integer. Usually Berry does not perform implicit type conversion, but when an integer is added to a floating point number, Berry will automatically convert the integer operand to a floating point number. For example, The result of the expression `1.1+1` is `2.1`.
 
 In expressions, the precedence and associativity of operators determine the order of calculations. The precedence and associativity of operators are given in the [Basic Concepts](./basic-concepts.html) chapter.
 
@@ -30,7 +30,7 @@ The associativity specifies the order of calculation of the operands on both sid
 
 #### Description
 
-For the add operator `+`, when the operand is two strings, the string concatenation is performed. All arithmetic operators except the `%` can support integer and real operands, and the operator `%` only supports integer types.
+For the add operator `+`, when the operand is two strings, the string concatenation is performed. All arithmetic operators except the `%` can support integer and real operands, and the operator `%` only supports integer type.
 
 All arithmetic operators can be overloaded in classes.
 
