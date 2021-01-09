@@ -1,5 +1,12 @@
-#ifndef __BE_PARSER_H
-#define __BE_PARSER_H
+/********************************************************************
+** Copyright (c) 2018-2020 Guan Wenliang
+** This file is part of the Berry default interpreter.
+** skiars@qq.com, https://github.com/Skiars/berry
+** See Copyright Notice in the LICENSE file or at
+** https://github.com/Skiars/berry/blob/master/LICENSE
+********************************************************************/
+#ifndef BE_PARSER_H
+#define BE_PARSER_H
 
 #include "be_object.h"
 #include "be_string.h"
@@ -11,26 +18,28 @@ typedef enum {
     ETREAL,
     ETINT,
     ETSTRING,
+    ETPROTO,
+    ETCONST,
     ETLOCAL,
     ETGLOBAL,
     ETUPVAL,
     ETMEMBER,
     ETINDEX,
-    ETCONST,
     ETREG
 } exptype_t;
 
 typedef struct {
     union {
         struct { /* for suffix */
-            short idx; /* suffix RK index */
-            bbyte obj; /* object index */
-            bbyte tt; /* object type */
+            unsigned int idx:9; /* suffix RK index */
+            unsigned int obj:9; /* object RK index */
+            unsigned int tt:5; /* object type */
         } ss;
-        breal r;    /* for ETREAL */
-        bint i;     /* for ETINT */
-        int idx;    /* variable index */
-        bstring *s;
+        breal r;     /* for ETREAL */
+        bint i;      /* for ETINT */
+        bstring *s;  /* for ETSTRING */
+        bproto *p;  /* for ETPROTO */
+        int idx;     /* variable index */
     } v;
     int t; /* patch list of 'exit when true' */
     int f; /* patch list of 'exit when false' */
@@ -41,7 +50,7 @@ typedef struct {
 typedef struct bblockinfo {
     struct bblockinfo *prev;
     bbyte nactlocals; /* number of active local variables */
-    bbyte isloop;     /* loop mark */
+    bbyte type;       /* block type mask */
     bbyte hasupval;   /* has upvalue mark */
     int breaklist;    /* break list */
     int beginpc;      /* begin pc */
@@ -49,27 +58,31 @@ typedef struct bblockinfo {
 } bblockinfo;
 
 typedef struct bfuncinfo {
-    bproto *proto;
-    struct bfuncinfo *prev;
+    struct bfuncinfo *prev; /* outer function */
+    bproto *proto; /* the function prototype */
     bblockinfo *binfo; /* block information */
-    bvector code;
+    struct blexer *lexer; /* the lexer pointer */
     blist *local; /* local variable */
     bmap *upval; /* upvalue variable */
-    bvector *global; /* global variable */
+    bvector code; /* code vector */
     bvector kvec; /* constants table */
     bvector pvec; /* proto table */
-    int pc; /* program count */
-    int jpc;  /* list of pending jumps to 'pc' */
-    bbyte nlocal; /* local variable count */
-    bbyte nstack; /* stack usage */
-    bbyte freereg; /* first free register */
-#if BE_RUNTIME_DEBUG_INFO /* debug information */
-    struct blexer *lexer;
+#if BE_DEBUG_RUNTIME_INFO /* debug information */
     bvector linevec;
 #endif
+#if BE_DEBUG_VAR_INFO
+    bvector varvec;
+#endif
+    int pc; /* program count */
+    bbyte freereg; /* first free register */
+    bbyte flags; /* some flages */
 } bfuncinfo;
 
-bclosure* be_parser_source(bvm *vm,
-    const char *fname, const char *text, size_t length);
+/* code block type definitions */
+#define BLOCK_LOOP      1
+#define BLOCK_EXCEPT    2
+
+bclosure *be_parser_source(bvm *vm,
+    const char *fname, breader reader, void *data, bbool islocal);
 
 #endif

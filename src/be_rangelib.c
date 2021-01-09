@@ -1,4 +1,13 @@
-#include "be_rangelib.h"
+/********************************************************************
+** Copyright (c) 2018-2020 Guan Wenliang
+** This file is part of the Berry default interpreter.
+** skiars@qq.com, https://github.com/Skiars/berry
+** See Copyright Notice in the LICENSE file or at
+** https://github.com/Skiars/berry/blob/master/LICENSE
+********************************************************************/
+#include "be_object.h"
+#include "be_func.h"
+#include "be_vm.h"
 
 static int m_init(bvm *vm)
 {
@@ -7,7 +16,7 @@ static int m_init(bvm *vm)
     be_pop(vm, 1);
     be_pushvalue(vm, 3);
     be_setmember(vm, 1, "__upper__");
-    return be_returnnil(vm);
+    be_return_nil(vm);
 }
 
 static int m_tostring(bvm *vm)
@@ -27,19 +36,19 @@ static int m_tostring(bvm *vm)
     be_pushstring(vm, ")");
     be_strconcat(vm, -2);
     be_pop(vm, 1);
-    return be_return(vm);
+    be_return(vm);
 }
 
 static int m_upper(bvm *vm)
 {
     be_getmember(vm, 1, "__upper__");
-    return be_return(vm);
+    be_return(vm);
 }
 
 static int m_lower(bvm *vm)
 {
     be_getmember(vm, 1, "__lower__");
-    return be_return(vm);
+    be_return(vm);
 }
 
 static int m_setrange(bvm *vm)
@@ -49,73 +58,66 @@ static int m_setrange(bvm *vm)
     be_pop(vm, 1);
     be_pushvalue(vm, 3);
     be_setmember(vm, 1, "__upper__");
-    return be_returnnil(vm);
+    be_return_nil(vm);
 }
 
-static int i_init(bvm *vm)
+static int iter_closure(bvm *vm)
 {
-    be_pushvalue(vm, 2);
-    be_setmember(vm, 1, "__obj__");
-    return be_returnnil(vm);
-}
-
-static int i_hashnext(bvm *vm)
-{
-    be_getmember(vm, 1, "__obj__");
-    be_getmember(vm, 1, "__iter__");
-    be_getmember(vm, -2, "__upper__");
-    if (!be_isint(vm, -2) || be_toint(vm, -2) < be_toint(vm, -1)) {
-        be_pushbool(vm, btrue);
-    } else {
-        be_pushbool(vm, bfalse);
+    /* for better performance, we operate the upvalues
+     * directly without using by the stack. */
+    bntvclos *func = var_toobj(vm->cf->func);
+    bvalue *uv0 = be_ntvclos_upval(func, 0)->value;
+    bvalue *uv1 = be_ntvclos_upval(func, 1)->value;
+    bint lower = var_toint(uv0); /* upvalue[0] => lower */
+    bint upper = var_toint(uv1); /* upvalue[1] => upper */
+    if (lower > upper) {
+        be_stop_iteration(vm);
     }
-    return be_return(vm);
-}
-
-static int i_next(bvm *vm)
-{
-    be_getmember(vm, 1, "__iter__");
-    if (!be_isint(vm, -1)) {
-        be_getmember(vm, 1, "__obj__");
-        be_getmember(vm, -1, "__lower__");
-        be_setmember(vm, 1, "__iter__");
-    } else {
-        be_getmember(vm, 1, "__iter__");
-        be_pushint(vm, be_toint(vm, -1) + 1);
-        be_setmember(vm, 1, "__iter__");
-    }
-    return be_return(vm);
+    var_toint(uv0) = lower + 1; /* set upvale[0] */
+    be_pushint(vm, lower); /* push the return value */
+    be_return(vm);
 }
 
 static int m_iter(bvm *vm)
 {
-    static const bmemberinfo members[] = {
-        { "__obj__", NULL },
-        { "__iter__", NULL },
-        { "init", i_init },
-        { "hasnext", i_hashnext },
-        { "next", i_next },
-        { NULL, NULL }
-    };
-    be_pushclass(vm, "iterator", members);
-    be_pushvalue(vm, 1);
-    be_call(vm, 1);
+    be_pushntvclosure(vm, iter_closure, 2);
+    be_getmember(vm, 1, "__lower__");
+    be_setupval(vm, -2, 0);
     be_pop(vm, 1);
-    return be_return(vm);
+    be_getmember(vm, 1, "__upper__");
+    be_setupval(vm, -2, 1);
+    be_pop(vm, 1);
+    be_return(vm);
 }
 
-void be_range_init(bvm *vm)
+#if !BE_USE_PRECOMPILED_OBJECT
+void be_load_rangelib(bvm *vm)
 {
-    static const bmemberinfo members[] = {
+    static const bnfuncinfo members[] = {
         { "__lower__", NULL },
         { "__upper__", NULL },
         { "init", m_init },
         { "tostring", m_tostring },
-        { "upper", m_upper },
         { "lower", m_lower },
+        { "upper", m_upper },
         { "setrange", m_setrange },
         { "iter", m_iter },
         { NULL, NULL }
     };
     be_regclass(vm, "range", members);
 }
+#else
+/* @const_object_info_begin
+class be_class_range (scope: global, name: range) {
+    __lower__, var
+    __upper__, var
+    init, func(m_init)
+    tostring, func(m_tostring)
+    lower, func(m_lower)
+    upper, func(m_upper)
+    setrange, func(m_setrange)
+    iter, func(m_iter)
+}
+@const_object_info_end */
+#include "../generate/be_fixed_be_class_range.h"
+#endif

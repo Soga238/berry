@@ -1,17 +1,25 @@
+/********************************************************************
+** Copyright (c) 2018-2020 Guan Wenliang
+** This file is part of the Berry default interpreter.
+** skiars@qq.com, https://github.com/Skiars/berry
+** See Copyright Notice in the LICENSE file or at
+** https://github.com/Skiars/berry/blob/master/LICENSE
+********************************************************************/
 #include "be_libs.h"
-#include "be_baselib.h"
-#include "be_listlib.h"
-#include "be_maplib.h"
-#include "be_rangelib.h"
-#include "be_iolib.h"
-#include "be_jsonlib.h"
+
+extern void be_load_baselib(bvm *vm);
+extern void be_load_listlib(bvm *vm);
+extern void be_load_maplib(bvm *vm);
+extern void be_load_rangelib(bvm *vm);
+extern void be_load_filelib(bvm *vm);
 
 void be_loadlibs(bvm *vm)
 {
-    be_loadbaselib(vm);
-    be_loadiolib(vm);
-    be_list_init(vm);
-    be_map_init(vm);
-    be_range_init(vm);
-    be_json_init(vm);
+    be_load_baselib(vm);
+#if !BE_USE_PRECOMPILED_OBJECT
+    be_load_listlib(vm);
+    be_load_maplib(vm);
+    be_load_rangelib(vm);
+    be_load_filelib(vm);
+#endif
 }

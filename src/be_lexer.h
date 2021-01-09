@@ -1,5 +1,12 @@
-#ifndef __BE_LEXER_H
-#define __BE_LEXER_H
+/********************************************************************
+** Copyright (c) 2018-2020 Guan Wenliang
+** This file is part of the Berry default interpreter.
+** skiars@qq.com, https://github.com/Skiars/berry
+** See Copyright Notice in the LICENSE file or at
+** https://github.com/Skiars/berry/blob/master/LICENSE
+********************************************************************/
+#ifndef BE_LEXER_H
+#define BE_LEXER_H
 
 #include "be_object.h"
 
@@ -13,6 +20,16 @@ typedef enum {
     /* operator, don't change order */
     /* assign operator */
     OptAssign,      /* operator, = */
+    OptAddAssign,   /* operator, += */
+    OptSubAssign,   /* operator, -= */
+    OptMulAssign,   /* operator, *= */
+    OptDivAssign,   /* operator, /= */
+    OptModAssign,   /* operator, %= */
+    OptAndAssign,   /* operator, &= */
+    OptOrAssign,    /* operator, |= */
+    OptXorAssign,   /* operator, ^= */
+    OptLsfAssign,   /* operator, <<= */
+    OptRsfAssign,   /* operator, >>= */
     /* binary operator */
     OptAdd,         /* operator, + */
     OptSub,         /* operator, - */
@@ -25,11 +42,17 @@ typedef enum {
     OptNE,          /* operator, != */
     OptGT,          /* operator, > */
     OptGE,          /* operator, >= */
-    OptRange,       /* operator, .. */
+    OptBitAnd,      /* operatoe, &  */
+    OptBitOr,       /* operatoe, |  */
+    OptBitXor,      /* operatoe, ^  */
+    OptShiftL,      /* operatoe, <<  */
+    OptShiftR,      /* operatoe, >>  */
+    OptConnect,     /* operator, .. */
     OptAnd,         /* operator, && */
     OptOr,          /* operator, || */
     /* unary operator */
-    OptNot,        /* operator, ! */
+    OptNot,         /* operator, ! */
+    OptFlip,        /* operator, ~ */
     /* postfix operator or bracket */
     OptLBK,         /* operator, ( bracket */
     OptRBK,         /* operator, ) bracket */
@@ -42,6 +65,8 @@ typedef enum {
     OptComma,       /* operator, , */
     OptSemic,       /* operator, ; */
     OptColon,       /* operator, : */
+    OptQuestion,    /* operator, ? */
+    OptArrow,       /* operator, -> */
     /* keyword */
     KeyIf,          /* keyword if */
     KeyElif,        /* keyword elif */
@@ -58,8 +83,25 @@ typedef enum {
     KeyFalse,       /* keyword false */
     KeyNil,         /* keyword nil */
     KeyVar,         /* keyword var */
-    KeyDo           /* keyword do */
+    KeyDo,          /* keyword do */
+    KeyImport,      /* keyword import */
+    KeyAs,          /* keyword as */
+    KeyTry,         /* keyword try */
+    KeyExcept,      /* keyword except */
+    KeyRaise        /* keyword raise */
 } btokentype;
+
+struct blexerreader {
+    const char *s;
+    size_t len;
+    void *data;
+    breader readf;
+};
+
+struct blexerbuf {
+    char *s;
+    size_t len, size;
+};
 
 typedef struct btoken {
     btokentype type;
@@ -72,22 +114,24 @@ typedef struct btoken {
 
 typedef struct blexer {
     const char *fname;
-    const char *line, *cursor, *endbuf;
     btoken token;
-    int size;
-    char *data;
     int linenumber;
     int lastline;
+    btokentype cacheType;
+    struct blexerbuf buf;
+    struct blexerreader reader;
+    bmap *strtab;
     bvm *vm;
+    int cursor;
 } blexer;
 
-void be_lexer_init(blexer *lexer, bvm *vm);
+void be_lexer_init(blexer *lexer, bvm *vm,
+    const char *fname, breader reader, void *data);
 void be_lexer_deinit(blexer *lexer);
 void be_lexerror(blexer *lexer, const char *msg);
-void be_lexer_set_source(blexer *lexer,
-    const char *fname, const char *text, size_t length);
 int be_lexer_scan_next(blexer *lexer);
-const char* be_token2str(bvm *vm, btoken *token);
+bstring* be_lexer_newstr(blexer *lexer, const char *str);
+const char *be_token2str(bvm *vm, btoken *token);
 const char* be_tokentype2str(btokentype type);
 
 #endif

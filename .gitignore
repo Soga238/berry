@@ -36,6 +36,7 @@
 *.x86_64
 *.hex
 /berry
+*.bec
 
 # Debug files
 *.dSYM/
@@ -52,7 +53,19 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# Test files
+*.gcda
+*.gcno
+*.info
+test_report/
+
+# Ctags
+tags
+
 # other
 *.out.*
 *.user
 .vscode
+.DS_Store
+generate/
+temp/

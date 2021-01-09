@@ -1,12 +1,22 @@
-#include "be_jsonlib.h"
+/********************************************************************
+** Copyright (c) 2018-2020 Guan Wenliang
+** This file is part of the Berry default interpreter.
+** skiars@qq.com, https://github.com/Skiars/berry
+** See Copyright Notice in the LICENSE file or at
+** https://github.com/Skiars/berry/blob/master/LICENSE
+********************************************************************/
+#include "be_object.h"
 #include "be_mem.h"
 #include <string.h>
 
-#define MAX_INDENT      12
-#define INDENT_WIDTH    4
+#if BE_USE_JSON_MODULE
+
+#define MAX_INDENT      24
+#define INDENT_WIDTH    2
+#define INDENT_CHAR     ' '
 
 static const char* parser_value(bvm *vm, const char *json);
-static void json2str(bvm *vm, int *indent, int idx, int fmt);
+static void value_dump(bvm *vm, int *indent, int idx, int fmt);
 
 static const char* skip_space(const char *s)
 {
@@ -55,12 +65,12 @@ static int json_strlen(const char *json)
             }
         }
     }
-    return ch ?  s - json - 1 : -1;
+    return ch ? cast_int(s - json - 1) : -1;
 }
 
 static void json2berry(bvm *vm, const char *class)
 {
-    be_getglobal(vm, class);
+    be_getbuiltin(vm, class);
     be_pushvalue(vm, -2);
     be_call(vm, 1);
     be_moveto(vm, -2, -3);
@@ -132,7 +142,7 @@ static const char* parser_string(bvm *vm, const char *json)
         int len = json_strlen(json++);
         if (len > -1) {
             int ch;
-            char *buf, *dst = buf = be_malloc(len);
+            char *buf, *dst = buf = be_malloc(vm, len);
             while ((ch = *json) != '\0' && ch != '"') {
                 ++json;
                 if (ch == '\\') {
@@ -149,24 +159,22 @@ static const char* parser_string(bvm *vm, const char *json)
                     case 'u': { /* load unicode */
                         dst = load_unicode(dst, json);
                         if (dst == NULL) {
-                            be_free(buf);
+                            be_free(vm, buf, len);
                             return NULL;
                         }
                         json += 4;
                         break;
                     }
-                    default: be_free(buf); return NULL; /* error */
+                    default: be_free(vm, buf, len); return NULL; /* error */
                     }
                 } else {
                     *dst++ = (char)ch;
                 }
             }
-            if (ch == '"') {
-                be_pushnstring(vm, buf, dst - buf);
-                be_free(buf);
-                return json + 1; /* skip '"' */
-            }
-            be_free(buf);
+            be_assert(ch == '"');
+            be_pushnstring(vm, buf, cast_int(dst - buf));
+            be_free(vm, buf, len);
+            return json + 1; /* skip '"' */
         }
     }
     return NULL;
@@ -181,7 +189,7 @@ static const char* parser_field(bvm *vm, const char *json)
             if (json) {
                 json = parser_value(vm, json);
                 if (json) {
-                    be_insert(vm, -3);
+                    be_data_insert(vm, -3);
                     be_pop(vm, 2); /* pop key and value */
                     return json;
                 }
@@ -230,7 +238,7 @@ static const char* parser_array(bvm *vm, const char *json)
             be_pop(vm, 1); /* pop map */
             return NULL;
         }
-        be_append(vm, -2);
+        be_data_push(vm, -2);
         be_pop(vm, 1); /* pop value */
         while ((s = match_char(json, ',')) != NULL) {
             json = parser_value(vm, s);
@@ -238,7 +246,7 @@ static const char* parser_array(bvm *vm, const char *json)
                 be_pop(vm, 1); /* pop map */
                 return NULL;
             }
-            be_append(vm, -2);
+            be_data_push(vm, -2);
             be_pop(vm, 1); /* pop value */
         }
     }
@@ -269,6 +277,10 @@ static const char* parser_value(bvm *vm, const char *json)
         return parser_null(vm, json);
     default: /* number */
         if (*json == '-' || is_digit(*json)) {
+            /* check invalid JSON syntax: 0\d+ */
+            if (json[0] == '0' && is_digit(json[1])) {
+                return NULL;
+            }
             return be_str2num(vm, json);
         }
     }
@@ -279,11 +291,12 @@ static int m_json_load(bvm *vm)
 {
     if (be_isstring(vm, 1)) {
         const char *json = be_tostring(vm, 1);
-        if (parser_value(vm, json)) {
-            return be_return(vm);
+        json = parser_value(vm, json);
+        if (json != NULL && *json == '\0') {
+            be_return(vm);
         }
     }
-    return be_returnnil(vm);
+    be_return_nil(vm);
 }
 
 static void make_indent(bvm *vm, int stridx, int indent)
@@ -291,7 +304,7 @@ static void make_indent(bvm *vm, int stridx, int indent)
     if (indent) {
         char buf[MAX_INDENT * INDENT_WIDTH + 1];
         indent = (indent < MAX_INDENT ? indent : MAX_INDENT) * INDENT_WIDTH;
-        memset(buf, ' ', indent);
+        memset(buf, INDENT_CHAR, indent);
         buf[indent] = '\0';
         stridx = be_absindex(vm, stridx);
         be_pushstring(vm, buf);
@@ -300,27 +313,34 @@ static void make_indent(bvm *vm, int stridx, int indent)
     }
 }
 
-static void object_tostr(bvm *vm, int *indent, int idx, int fmt)
+void string_dump(bvm *vm, int index)
 {
-    be_getmember(vm, idx, "__data__");
+    be_tostring(vm, index); /* convert value to string */
+    be_toescape(vm, index, 'u');
+    be_pushvalue(vm, index);
+}
+
+static void object_dump(bvm *vm, int *indent, int idx, int fmt)
+{
+    be_getmember(vm, idx, ".p");
     be_pushstring(vm, fmt ? "{\n" : "{");
     be_pushiter(vm, -2); /* map iterator use 1 register */
     *indent += fmt;
-    while (be_hasnext(vm, -3)) {
+    while (be_iter_hasnext(vm, -3)) {
         make_indent(vm, -2, fmt ? *indent : 0);
-        be_next(vm, -3);
+        be_iter_next(vm, -3);
         /* key.tostring() */
-        be_pushfstring(vm, "\"%s\"", be_tostring(vm, -2));
+        string_dump(vm, -2);
         be_strconcat(vm, -5);
         be_pop(vm, 1);
         be_pushstring(vm, fmt ? ": " : ":"); /* add ': ' */
         be_strconcat(vm, -5);
         be_pop(vm, 1);
         /* value.tostring() */
-        json2str(vm, indent, -1, fmt);
+        value_dump(vm, indent, -1, fmt);
         be_strconcat(vm, -5);
         be_pop(vm, 3);
-        if (be_hasnext(vm, -3)) {
+        if (be_iter_hasnext(vm, -3)) {
             be_pushstring(vm, fmt ? ",\n" : ",");
             be_strconcat(vm, -3);
             be_pop(vm, 1);
@@ -339,19 +359,19 @@ static void object_tostr(bvm *vm, int *indent, int idx, int fmt)
     be_pop(vm, 2);
 }
 
-static void array_tostr(bvm *vm, int *indent, int idx, int fmt)
+static void array_dump(bvm *vm, int *indent, int idx, int fmt)
 {
-    be_getmember(vm, idx, "__data__");
+    be_getmember(vm, idx, ".p");
     be_pushstring(vm, fmt ? "[\n" : "[");
     be_pushiter(vm, -2);
     *indent += fmt;
-    while (be_hasnext(vm, -3)) {
+    while (be_iter_hasnext(vm, -3)) {
         make_indent(vm, -2,  fmt ? *indent : 0);
-        be_next(vm, -3);
-        json2str(vm, indent, -1, fmt);
+        be_iter_next(vm, -3);
+        value_dump(vm, indent, -1, fmt);
         be_strconcat(vm, -4);
         be_pop(vm, 2);
-        if (be_hasnext(vm, -3)) {
+        if (be_iter_hasnext(vm, -3)) {
             be_pushstring(vm, fmt ? ",\n" : ",");
             be_strconcat(vm, -3);
             be_pop(vm, 1);
@@ -370,19 +390,19 @@ static void array_tostr(bvm *vm, int *indent, int idx, int fmt)
     be_pop(vm, 2);
 }
 
-static void json2str(bvm *vm, int *indent, int idx, int fmt)
+static void value_dump(bvm *vm, int *indent, int idx, int fmt)
 {
-    if (is_object(vm, "map", idx)) {
-        object_tostr(vm, indent, idx, fmt);
-    } else if (is_object(vm, "list", idx)) {
-        array_tostr(vm, indent, idx, fmt);
-    } else if (be_isnil(vm, idx)) {
+    if (is_object(vm, "map", idx)) { /* convert to json object */
+        object_dump(vm, indent, idx, fmt);
+    } else if (is_object(vm, "list", idx)) { /* convert to json array */
+        array_dump(vm, indent, idx, fmt);
+    } else if (be_isnil(vm, idx)) { /* convert to json null */
         be_pushstring(vm, "null");
-    } else if (be_isstring(vm, idx)) { /* add '"" to strings */
-        be_pushfstring(vm, "\"%s\"", be_tostring(vm, idx));
-    } else {
+    } else if (be_isnumber(vm, idx) || be_isbool(vm, idx)) { /* convert to json number and boolean */
         be_tostring(vm, idx);
         be_pushvalue(vm, idx); /* push to top */
+    } else { /* convert to string */
+        string_dump(vm, idx);
     }
 }
 
@@ -393,12 +413,25 @@ static int m_json_dump(bvm *vm)
     if (argc > 1) {
         fmt = !strcmp(be_tostring(vm, 2), "format");
     }
-    json2str(vm, &indent, 1, fmt);
-    return be_return(vm);
+    value_dump(vm, &indent, 1, fmt);
+    be_return(vm);
 }
 
-void be_json_init(bvm *vm)
-{
-    be_regcfunc(vm, "json_load", m_json_load);
-    be_regcfunc(vm, "json_dump", m_json_dump);
+#if !BE_USE_PRECOMPILED_OBJECT
+be_native_module_attr_table(json) {
+    be_native_module_function("load", m_json_load),
+    be_native_module_function("dump", m_json_dump)
+};
+
+be_define_native_module(json, NULL);
+#else
+/* @const_object_info_begin
+module json (scope: global, depend: BE_USE_JSON_MODULE) {
+    load, func(m_json_load)
+    dump, func(m_json_dump)
 }
+@const_object_info_end */
+#include "../generate/be_fixed_json.h"
+#endif
+
+#endif /* BE_USE_JSON_MODULE */
